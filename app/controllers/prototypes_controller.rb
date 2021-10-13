@@ -1,5 +1,6 @@
 class PrototypesController < ApplicationController
   before_action :authenticate_user!, except: [:index, :show]
+  before_action :prototype_find, only: [:show, :edit, :update, :destroy]
   before_action :is_identity, only: [:edit, :update, :destroy]
 
   def index
@@ -21,31 +22,25 @@ class PrototypesController < ApplicationController
   end
 
   def show
-    @prototype = Prototype.find(params[:id])
     @comment = Comment.new
     @comments = Comment.where(prototype_id: params[:id])
   end
 
   def edit
-    @prototype = Prototype.find(params[:id])
   end
 
   def update
-    prototype = Prototype.find(params[:id])
-    if prototype.update(prototype_params)
-      redirect_to root_path
+    if @prototype.update(prototype_params)
+      redirect_to prototype_path(@prototype.id)
     else
-      @prototype = prototype
       render :edit
     end
   end
 
   def destroy
-    prototype = Prototype.find(params[:id])
-    if prototype.destroy
+    if @prototype.destroy
       redirect_to root_path
     else
-      @prototype = prototype
       render :show
     end
   end
@@ -56,8 +51,12 @@ class PrototypesController < ApplicationController
     params.require(:prototype).permit(:title, :catch_copy, :concept, :image).merge(user_id: current_user.id)
   end
 
+  def prototype_find
+    @prototype = Prototype.find(params[:id])
+  end
+
   def is_identity
-    redirect_to root_path unless current_user.id == params[:id]
+    redirect_to root_path unless current_user.id == @prototype.user_id
   end
 
 end
